@@ -2,13 +2,14 @@
 class Peer(object):
     """docstring for Peer"""
 
-    def __init__(self, host_name, port_number):
+    def __init__(self, host_name, port_number, os_version="nil"):
         super(Peer, self).__init__()
         self.hostname = host_name
         self.port_number = port_number
+        self.os_version = os_version
 
     def to_string(self):
-        print(self.hostname+" "+self.port_number)
+        print(self.hostname+" "+self.port_number+" "+self.os_version)
 
 
 class RFC_Index(object):

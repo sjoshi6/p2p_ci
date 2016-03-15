@@ -81,3 +81,28 @@ class S2P_Protocol(object):
         return message
 
 
+class P2P_Request_Protocol(object):
+    """docstring for P2P_Request_Protocol"""
+
+    def __init__(self):
+        super(P2P_Request_Protocol, self).__init__()
+        self.header = ""
+        self.header_lines = []
+        self.header_dictionary = {}  # Used to create object from str
+        self.trailer = "<cr> <lf>"
+
+    def add_header(self,method, rfc_num, proto_ver):
+        self.header = method+" <sp> "+rfc_num+" <sp> "+proto_ver+" <cr> <lf>"
+
+    def add_header_line(self, field, value):
+        self.header_lines.append(field+" <sp> "+value+" <cr> <lf>")
+
+    def to_str(self):
+        message = self.header
+
+        for line in self.header_lines:
+            message = message + "\n" + line
+
+        message = message + "\n" + self.trailer
+        return message
+
