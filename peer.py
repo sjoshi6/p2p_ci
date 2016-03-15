@@ -2,12 +2,9 @@ import logging
 import os
 import sys
 from socket import *
+from settings import *
 from templates import protocols
 
-
-SERVER_PORT = 7734
-SERVER_HOST_NAME = 'localhost'
-CLIENT_PORT = 5678
 CLIENT_HOST = sys.argv[1]
 
 logging.basicConfig(level=logging.INFO)
@@ -16,9 +13,10 @@ logger.info('Starting logs...')
 
 
 def test_add_data():
-    # Create a protcol object using templates
+
+    # Create a protocol object using templates
     protocol_obj = protocols.P2S_Protocol()
-    protocol_obj.add_header("ADD", "RFC 123", "P2P-CI/1.0")
+    protocol_obj.add_header("ADD", "RFC 123", "P2P-CI/2.0")
     protocol_obj.add_header_line("HOST", "thishost.csc.ncsu.edu."+sys.argv[2])
     protocol_obj.add_header_line("PORT", str(CLIENT_PORT))
     protocol_obj.add_header_line("TITLE", "A Preferred Official ICP")
@@ -26,7 +24,8 @@ def test_add_data():
 
 
 def test_look_up():
-    # Create a protcol object using templates
+
+    # Create a protocol object using templates
     protocol_obj = protocols.P2S_Protocol()
     protocol_obj.add_header("LOOKUP", "RFC 123", "P2P-CI/1.0")
     protocol_obj.add_header_line("HOST", "thishost.csc.ncsu.edu."+sys.argv[2])
@@ -36,7 +35,8 @@ def test_look_up():
 
 
 def test_list():
-    # Create a protcol object using templates
+
+    # Create a protocol object using templates
     protocol_obj = protocols.P2S_Protocol()
     protocol_obj.add_header("LIST", "ALL", "P2P-CI/1.0")
     protocol_obj.add_header_line("HOST", "thishost.csc.ncsu.edu."+sys.argv[2])

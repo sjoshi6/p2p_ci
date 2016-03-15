@@ -1,16 +1,31 @@
 import logging
 import os
 from socket import *
+from settings import *
 import sys
 from templates import protocols
 from model import *
 
-# constants
-SERVER_PORT = 7734
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(os.path.basename(__file__))
 logger.info('Starting logs...')
+
+
+def check_protocol(protocol_obj):
+
+    """
+    Checks the protocol of the incoming request
+    :param protocol_obj: P2S protocol object
+    :return: boolean
+    """
+
+    if protocol_obj.header_dictionary["PROTOCOL"] == PROTOCOL:
+        logging.info("Protocol check passed")
+        return True
+    else:
+        logging.warning("Protocol check failed")
+        return False
 
 
 def add_handler(bs_server, connection_socket, protocol_obj, reply_obj):
@@ -157,24 +172,33 @@ def main():
         protocol_obj.make_dictionary_from_str(sentence.decode("utf-8"))
         print(protocol_obj.header_dictionary)
 
-        if protocol_obj.header_dictionary["METHOD"] == "ADD":
+        if check_protocol(protocol_obj):
 
-            logging.info("Received ADD request")
-            bs_server = add_handler(bs_server, connection_socket, protocol_obj, reply_obj)
+            if protocol_obj.header_dictionary["METHOD"] == "ADD":
 
-        elif protocol_obj.header_dictionary["METHOD"] == "LOOKUP":
+                logging.info("Received ADD request")
+                bs_server = add_handler(bs_server, connection_socket, protocol_obj, reply_obj)
 
-            logging.info("Received LOOKUP request")
-            lookup_handler(bs_server, connection_socket, protocol_obj, reply_obj)
+            elif protocol_obj.header_dictionary["METHOD"] == "LOOKUP":
 
-        elif protocol_obj.header_dictionary["METHOD"] == "LIST":
-            logging.info("Received LIST request")
-            list_handler(bs_server,connection_socket,reply_obj)
+                logging.info("Received LOOKUP request")
+                lookup_handler(bs_server, connection_socket, protocol_obj, reply_obj)
+
+            elif protocol_obj.header_dictionary["METHOD"] == "LIST":
+
+                logging.info("Received LIST request")
+                list_handler(bs_server,connection_socket,reply_obj)
+
+            else:
+
+                logging.warning("Incorrect method choice")
+                pass
 
         else:
 
-            logging.warning("Incorrect method choice")
-            pass
+            reply_obj.add_header("P2P-CI/1.0", "505", "P2P-CI Version Not Supported")
+            reply = reply_obj.to_str()
+            connection_socket.send(bytes(reply, "UTF-8"))
 
         connection_socket.close()
 
