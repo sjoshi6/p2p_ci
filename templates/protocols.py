@@ -68,8 +68,8 @@ class S2P_Protocol(object):
     def add_header(self,protocol_ver, reply, desc):
         self.header = protocol_ver+" <sp> "+reply+" <sp> "+desc+" <cr> <lf>"
 
-    def add_header_line(self):
-        pass
+    def add_header_line(self, rfc_num, rfc_title, host_name, host_port):
+        self.header_lines.append(rfc_num + " <sp> "+rfc_title+" <sp> "+host_name+" <sp> "+host_port+" <cr><lf>")
 
     def to_str(self):
         message = self.header
