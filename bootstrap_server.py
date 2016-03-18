@@ -142,7 +142,6 @@ def test_print(bs_server):
     print("############")
     print(bs_server.present)
     print("############")
-    print(bs_server.peer_list[0].to_string())
     for rfc in bs_server.rfc_list:
         rfc.to_string()
 
