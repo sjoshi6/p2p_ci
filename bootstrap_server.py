@@ -12,6 +12,9 @@ logger = logging.getLogger(os.path.basename(__file__))
 logger.info('Starting logs...')
 
 
+bs_server = BootStrapServer()
+
+
 def check_protocol(protocol_obj):
 
     """
@@ -74,7 +77,6 @@ def add_handler(bs_server, connection_socket, protocol_obj, reply_obj):
     reply_obj.add_header("P2P-CI/1.0", "200", "OK")
     reply = reply_obj.to_str()
     connection_socket.send(bytes(reply, "UTF-8"))
-    return bs_server
 
 
 def lookup_handler(bs_server, connection_socket, protocol_obj, reply_obj):
@@ -148,22 +150,10 @@ def test_print(bs_server):
     print("############")
 
 
-def main():
-
-    bs_server = BootStrapServer()
-    logging.info("Starting server at: "+str(SERVER_PORT))
-
-    # Server socket setup
-    server_socket = socket(AF_INET, SOCK_STREAM)
-    server_socket.bind(('', SERVER_PORT))
-    server_socket.listen(10)
-
-    logging.info("Waiting for connections...")
+# Used to process one clients requests
+def process_requests(connection_socket, bs_server):
 
     while 1:
-
-        # Fork a process for each client here
-        connection_socket, addr = server_socket.accept()
         sentence = connection_socket.recv(1024)
         reply_obj = protocols.S2P_Protocol()
 
@@ -176,7 +166,7 @@ def main():
             if protocol_obj.header_dictionary["METHOD"] == "ADD":
 
                 logging.info("Received ADD request")
-                bs_server = add_handler(bs_server, connection_socket, protocol_obj, reply_obj)
+                add_handler(bs_server, connection_socket, protocol_obj, reply_obj)
 
             elif protocol_obj.header_dictionary["METHOD"] == "LOOKUP":
 
@@ -199,11 +189,37 @@ def main():
             reply = reply_obj.to_str()
             connection_socket.send(bytes(reply, "UTF-8"))
 
-        connection_socket.close()
 
-        # Test purpose
-        test_print(bs_server)
+def main():
+
+    logging.info("Starting server at: "+str(SERVER_PORT))
+
+    # Server socket setup
+    server_socket = socket(AF_INET, SOCK_STREAM)
+    server_socket.bind(('', SERVER_PORT))
+    server_socket.listen(10)
+
+    logging.info("Waiting for connections...")
+
+    while 1:
+
+        connection_socket, addr = server_socket.accept()
+
+        # After forking for each child process do this
+        if os.fork() == 0:
+
+            server_socket.close()
+            logging.info("Client closed parents socket")
+            process_requests(connection_socket, bs_server)
+            exit(0)
+
+        else:
+            logging.info("Parent closes client socket")
+            connection_socket.close()
+
+    # Close the server socket
+    server_socket.close()
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    main()

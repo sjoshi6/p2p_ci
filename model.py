@@ -28,9 +28,9 @@ class RFC_Index(object):
 
 class BootStrapServer(object):
     """docstring for BootStrapServer"""
+    peer_list = []
+    rfc_list = []
+    present = {}
 
     def __init__(self):
         super(BootStrapServer, self).__init__()
-        self.peer_list = []
-        self.rfc_list = []
-        self.present = {}
