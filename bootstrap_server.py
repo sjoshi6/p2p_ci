@@ -5,12 +5,11 @@ from settings import *
 import sys
 from templates import protocols
 from model import *
-
+from threading import Thread
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(os.path.basename(__file__))
 logger.info('Starting logs...')
-
 
 bs_server = BootStrapServer()
 
@@ -189,6 +188,8 @@ def process_requests(connection_socket, bs_server):
             reply = reply_obj.to_str()
             connection_socket.send(bytes(reply, "UTF-8"))
 
+    connection_socket.close()
+
 
 def main():
 
@@ -199,23 +200,14 @@ def main():
     server_socket.bind(('', SERVER_PORT))
     server_socket.listen(10)
 
-    logging.info("Waiting for connections...")
-
     while 1:
 
+        logging.info("Waiting for connections...")
         connection_socket, addr = server_socket.accept()
 
-        # After forking for each child process do this
-        if os.fork() == 0:
-
-            server_socket.close()
-            logging.info("Client closed parents socket")
-            process_requests(connection_socket, bs_server)
-            exit(0)
-
-        else:
-            logging.info("Parent closes client socket")
-            connection_socket.close()
+        logging.info("Connected from "+str(addr))
+        t = Thread(target=process_requests, args=(connection_socket, bs_server))
+        t.start()
 
     # Close the server socket
     server_socket.close()

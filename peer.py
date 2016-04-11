@@ -91,10 +91,13 @@ def handle_get(client_socket, rfc_num):
         myself_peer = Peer("host.ncsu.edu", str(CLIENT_PORT), os_version)
 
         # Connect to the peer and send get request
+        logging.info("###################################")
         logging.info("File owners info...")
         logging.info(file_owner_peer.to_string())
+
         logging.info("My Info...")
         logging.info(myself_peer.to_string())
+        logging.info("###################################")
 
     elif response_code == "404":
         logging.warning("The page that we tried to look up is missing")
