@@ -1,8 +1,8 @@
 import logging
 import os
 import sys
+import time
 import re
-from threading import Thread
 from model import *
 from socket import *
 from settings import *
@@ -61,7 +61,7 @@ def add_file_chunk_info(client_socket):
 
     # Get all files from the data
     my_org_files = os.listdir("data")
-
+    print(my_org_files)
     for file_name in my_org_files:
 
         file_name_arr = file_name.split("-")
@@ -70,7 +70,7 @@ def add_file_chunk_info(client_socket):
 
         # Send an add request to the bootstrap server for this RFC
         protocol_obj = protocols.P2S_Protocol()
-        protocol_obj.add_header("ADD", rfc_num, "P2P-CI/1.0")
+        protocol_obj.add_header("ADD", rfc_num, PROTOCOL)
         protocol_obj.add_header_line("HOST", MY_HOST_NAME)
         protocol_obj.add_header_line("PORT", str(CLIENT_PORT))
         protocol_obj.add_header_line("TITLE", title)
@@ -80,8 +80,42 @@ def add_file_chunk_info(client_socket):
     return
 
 
-def connect_to_peer():
-    pass
+def recv_timeout(the_socket,timeout=2):
+
+    # make socket non blocking
+    the_socket.setblocking(0)
+
+    # total data partwise in an array
+    total_data=[];
+    data='';
+
+    # beginning time
+    begin=time.time()
+    while 1:
+        # if you got some data, then break after timeout
+        if total_data and time.time()-begin > timeout:
+            break
+
+        # if you got no data at all, wait a little longer, twice the timeout
+        elif time.time()-begin > timeout*2:
+            break
+
+        # recv something
+        try:
+            data = str(the_socket.recv(8192).decode("utf-8"))
+
+            if data:
+                total_data.append(data)
+                # change the beginning time for measurement
+                begin = time.time()
+            else:
+                # sleep for sometime to indicate a gap
+                time.sleep(0.1)
+        except:
+            pass
+
+    # join all parts to make final string
+    return ''.join(total_data)
 
 
 def send_request_print_reply(client_socket, protocol_obj):
@@ -117,51 +151,34 @@ def handle_get(client_socket, rfc_num):
         host_name = data.group(3).lstrip().rstrip()
         port_num = data.group(4).lstrip().rstrip()
 
-        # create the info object for the peer holding the file
-        file_owner_peer = Peer(host_name, port_num, "")
+        logging.info("File found at " + host_name + ":" + port_num)
+        logging.info("Connecting to the peer to get file")
 
-        # create an object with my own host / port / os version
-        myself_peer = Peer(MY_HOST_NAME, str(CLIENT_PORT), MY_OS_NAME)
+        peer_protocol_obj = protocols.P2P_Request_Protocol()
+        peer_protocol_obj.add_header("GET", rfc_num, PROTOCOL)
+        peer_protocol_obj.add_header_line("HOST", MY_HOST_NAME)
+        peer_protocol_obj.add_header_line("OS", MY_OS_NAME)
 
-        # Connect to the peer and send get request
-        logging.info("###################################")
-        logging.info("File owners info...")
-        logging.info(file_owner_peer.to_string())
+        client_socket = socket(AF_INET, SOCK_STREAM)
+        client_socket.connect((HOST_NAME, int(port_num)))
 
-        logging.info("My Info...")
-        logging.info(myself_peer.to_string())
-        logging.info("###################################")
+        # Forward message to server
+        request = protocol_obj.to_str()
+        client_socket.send(bytes(request, 'UTF-8'))
+
+        # Reply test
+        reply_str = recv_timeout(client_socket,timeout=2)
+        print("\n" + reply_str + "\n")
+
+        # Write contents to a file
+        with open("data/"+rfc_num.lower()+".txt", 'w') as f:
+            f.write(reply_str)
+
+        client_socket.close()
 
     elif response_code == "404":
         logging.warning("The page that we tried to look up is missing")
         return None
-
-
-def handle_peer_request(connection_socket):
-
-    sentence = connection_socket.recv(1024)
-    reply_obj = protocols.P2P_Reply_Protocol()
-
-    protocol_obj = protocols.P2P_Request_Protocol()
-    # Get the request and create a dictionary .
-    # Add data to reply object.
-    # Send reply and return from function no while loop
-
-
-def start_peer_server():
-
-    logging.info("Starting server at: "+str(CLIENT_PORT))
-
-    # Server socket setup
-    peer_socket = socket(AF_INET, SOCK_STREAM)
-    peer_socket.bind(('', CLIENT_PORT))
-    peer_socket.listen(10)
-    while 1:
-        connection_socket, addr = peer_socket.accept()
-
-        logging.info("Connected from "+str(addr))
-        t = Thread(target=handle_peer_request, args=(connection_socket))
-        t.start()
 
 
 def main():
@@ -231,7 +248,7 @@ if __name__ == '__main__':
         # Get the host name and update the name with pseudonym
         node_info = os.uname()
         PSEUDO_NAME = sys.argv[1]
-        MY_HOST_NAME = node_info[1] + "-" + sys.argv[1]
+        MY_HOST_NAME = node_info[1]# + "-" + sys.argv[1]
         MY_OS_NAME = node_info[0] + node_info[2] + node_info[4]
 
         if PSEUDO_NAME == "peer1":

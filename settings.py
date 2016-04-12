@@ -1,6 +1,7 @@
 # constants
 SERVER_PORT = 7735
 SERVER_HOST_NAME = 'localhost'
+HOST_NAME = 'localhost'
 PROTOCOL = "P2P-CI/1.0"
 
 peer1_CLIENT_PORT = 5000
