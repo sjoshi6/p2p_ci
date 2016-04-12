@@ -2,15 +2,17 @@ import logging
 import os
 from socket import *
 from settings import *
-import sys
 from templates import protocols
 from model import *
 from threading import Thread
 
+
+# Logger info
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(os.path.basename(__file__))
 logger.info('Starting logs...')
 
+# Creating a shared object of server between threads
 bs_server = BootStrapServer()
 
 
@@ -94,7 +96,7 @@ def lookup_handler(bs_server, connection_socket, protocol_obj, reply_obj):
 
     rows = []
     for record in bs_server.rfc_list:
-        if record.rfc_num == rfc_num and record.rfc_title == title:
+        if record.rfc_num == rfc_num: #and record.rfc_title == title:
             rows.append(record)
 
     if len(rows) < 1:
@@ -176,6 +178,10 @@ def process_requests(connection_socket, bs_server):
 
                 logging.info("Received LIST request")
                 list_handler(bs_server,connection_socket,reply_obj)
+
+            elif protocol_obj.header_dictionary["METHOD"] == "EXIT":
+                # Break the while loop and close connection
+                break
 
             else:
 
