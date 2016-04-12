@@ -72,13 +72,8 @@ def add_file_chunk_info(client_socket):
         protocol_obj.add_header_line("HOST", MY_HOST_NAME)
         protocol_obj.add_header_line("PORT", str(CLIENT_PORT))
         protocol_obj.add_header_line("TITLE", title)
-        request = protocol_obj.to_str()
-        client_socket.send(bytes(request, 'UTF-8'))
 
-        # Reply for this added RFC index
-        reply = client_socket.recv(1024)
-        reply_str = str(reply.decode("utf-8"))
-        logging.info(reply_str)
+        send_request_print_reply(client_socket, protocol_obj)
 
     return
 
@@ -87,11 +82,7 @@ def connect_to_peer():
     pass
 
 
-#def send_request_print_reply()
-
-def handle_get(client_socket, rfc_num):
-
-    protocol_obj = look_up(rfc_num)
+def send_request_print_reply(client_socket, protocol_obj):
 
     # Forward message to server
     request = protocol_obj.to_str()
@@ -100,6 +91,15 @@ def handle_get(client_socket, rfc_num):
     # Reply test
     reply = client_socket.recv(1024)
     reply_str = str(reply.decode("utf-8"))
+    print("\n" + reply_str + "\n")
+
+    return reply_str
+
+
+def handle_get(client_socket, rfc_num):
+
+    protocol_obj = look_up(rfc_num)
+    reply_str = send_request_print_reply(client_socket, protocol_obj)
 
     # extract response code
     reply_arr = reply_str.split('\n')
@@ -182,27 +182,11 @@ def main():
                 doc_name = cmd_arr[1].lstrip().rstrip()
                 logging.info("Received LOOKUP for document name:: " + doc_name)
                 protocol_obj = look_up(doc_name)
-
-                # Forward message to server
-                request = protocol_obj.to_str()
-                client_socket.send(bytes(request, 'UTF-8'))
-
-                # Reply test
-                reply = client_socket.recv(1024)
-                reply_str = str(reply.decode("utf-8"))
-                print(reply_str)
+                send_request_print_reply(client_socket, protocol_obj)
 
         elif func_name == "LIST":
             protocol_obj = list_all()
-
-            # Forward message to server
-            request = protocol_obj.to_str()
-            client_socket.send(bytes(request, 'UTF-8'))
-
-            # Reply test
-            reply = client_socket.recv(1024)
-            reply_str = str(reply.decode("utf-8"))
-            print(reply_str)
+            send_request_print_reply(client_socket, protocol_obj)
 
     # Close the client socket after while true loop
     client_socket.close()
