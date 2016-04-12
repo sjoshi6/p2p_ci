@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 import re
-import platform
+from threading import Thread
 from model import *
 from socket import *
 from settings import *
@@ -10,6 +10,8 @@ from templates import protocols
 
 MY_HOST_NAME = ""
 MY_OS_NAME = ""
+PSEUDO_NAME = ""
+CLIENT_PORT = ""
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(os.path.basename(__file__))
@@ -135,6 +137,33 @@ def handle_get(client_socket, rfc_num):
         return None
 
 
+def handle_peer_request(connection_socket):
+
+    sentence = connection_socket.recv(1024)
+    reply_obj = protocols.P2P_Reply_Protocol()
+
+    protocol_obj = protocols.P2P_Request_Protocol()
+    # Get the request and create a dictionary .
+    # Add data to reply object.
+    # Send reply and return from function no while loop
+
+
+def start_peer_server():
+
+    logging.info("Starting server at: "+str(CLIENT_PORT))
+
+    # Server socket setup
+    peer_socket = socket(AF_INET, SOCK_STREAM)
+    peer_socket.bind(('', CLIENT_PORT))
+    peer_socket.listen(10)
+    while 1:
+        connection_socket, addr = peer_socket.accept()
+
+        logging.info("Connected from "+str(addr))
+        t = Thread(target=handle_peer_request, args=(connection_socket))
+        t.start()
+
+
 def main():
 
     # Establish a permanent connection to bootstrap
@@ -165,6 +194,7 @@ def main():
                 handle_get(client_socket, doc_name)
 
         elif func_name == "EXIT":
+
             protocol_obj = exit_peer()
             # Forward message to server
             request = protocol_obj.to_str()
@@ -200,10 +230,20 @@ if __name__ == '__main__':
     else:
         # Get the host name and update the name with pseudonym
         node_info = os.uname()
+        PSEUDO_NAME = sys.argv[1]
         MY_HOST_NAME = node_info[1] + "-" + sys.argv[1]
         MY_OS_NAME = node_info[0] + node_info[2] + node_info[4]
 
-        logging.info("New Peer with hostname : " + MY_HOST_NAME + " With OS as : " + MY_OS_NAME)
+        if PSEUDO_NAME == "peer1":
+            CLIENT_PORT = peer1_CLIENT_PORT
+
+        elif PSEUDO_NAME == "peer2":
+            CLIENT_PORT = peer2_CLIENT_PORT
+
+        elif PSEUDO_NAME == "peer3":
+            CLIENT_PORT = peer3_CLIENT_PORT
+
+        logging.info("New Peer with hostname : " + MY_HOST_NAME + " and PORT " + str(CLIENT_PORT) + " With OS as : " + MY_OS_NAME)
 
         # Start the peers main function
         main()
