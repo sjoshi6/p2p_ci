@@ -11,7 +11,6 @@ from datetime import datetime
 # Logger info
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(os.path.basename(__file__))
-logger.info('Starting logs...')
 
 MY_HOST_NAME = ""
 MY_OS_NAME = ""
@@ -83,7 +82,6 @@ def start_peer_server():
     while 1:
         connection_socket, addr = peer_socket.accept()
 
-        logging.info("Connected from "+str(addr))
         t = Thread(target=handle_peer_request, args=(connection_socket,))
         t.start()
 
