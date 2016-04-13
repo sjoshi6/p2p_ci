@@ -60,7 +60,7 @@ def connect_to_bootstrap():
 def add_file_chunk_info(client_socket):
 
     # Get all files from the data
-    my_org_files = os.listdir("data")
+    my_org_files = os.listdir("data/" + PSEUDO_NAME)
     print(my_org_files)
     for file_name in my_org_files:
 
@@ -132,7 +132,7 @@ def send_request_print_reply(client_socket, protocol_obj):
     return reply_str
 
 
-def handle_get(client_socket, rfc_num):
+def handle_get(client_socket, rfc_num, title):
 
     protocol_obj = look_up(rfc_num)
     reply_str = send_request_print_reply(client_socket, protocol_obj)
@@ -171,7 +171,7 @@ def handle_get(client_socket, rfc_num):
         print("\n" + reply_str + "\n")
 
         # Write contents to a file
-        with open("data/"+rfc_num.lower()+".txt", 'w') as f:
+        with open("data/"+PSEUDO_NAME+"/"+rfc_num.lower()+"-"+title+".txt", 'w') as f:
             f.write(reply_str)
 
         client_socket.close()
@@ -200,15 +200,18 @@ def main():
         # Get is handled differently therefore the outer if statement
         if func_name.startswith("GET"):
 
-            cmd_arr = func_name.split(" ")
-            if len(cmd_arr) <= 1:
+            rfc_num = input("> Enter RFC number := ")
+            title = input("> Enter RFC title := ")
+
+            if len(rfc_num) < 1 or len(title) < 1:
                 logging.warning("Provide document name along with get command")
                 continue
 
             else:
-                doc_name = cmd_arr[1].lstrip().rstrip()
-                logging.info("Received GET for document name:: " + doc_name)
-                handle_get(client_socket, doc_name)
+                rfc_num = rfc_num.lstrip().rstrip().upper()
+                title = title.lstrip().rstrip()
+                logging.info("Received GET for document name:: " + rfc_num)
+                handle_get(client_socket, rfc_num, title)
 
         elif func_name == "EXIT":
 
@@ -220,15 +223,18 @@ def main():
 
         elif func_name.startswith("LOOKUP"):
 
-            cmd_arr = func_name.split(" ")
-            if len(cmd_arr) <= 1:
+            rfc_num = input("> Enter RFC number := ")
+            title = input("> Enter RFC title := ")
+
+            if len(rfc_num) < 1 or len(title) < 1:
                 logging.warning("Provide document name along with get command")
                 continue
 
             else:
-                doc_name = cmd_arr[1].lstrip().rstrip()
-                logging.info("Received LOOKUP for document name:: " + doc_name)
-                protocol_obj = look_up(doc_name)
+                rfc_num = rfc_num.lstrip().rstrip().upper()
+                title = title.lstrip().rstrip()
+                logging.info("Received LOOKUP for document name:: " + rfc_num)
+                protocol_obj = look_up(rfc_num)
                 send_request_print_reply(client_socket, protocol_obj)
 
         elif func_name == "LIST":

@@ -38,18 +38,18 @@ def handle_peer_request(connection_socket):
     else:
 
         rfc_num = protocol_obj.header_dictionary["RFC_NUM"].lower()
-        file_names = os.listdir("data")
+        file_names = os.listdir("data/"+PSEUDO_NAME)
 
         for file_name in file_names:
 
             if file_name.startswith(rfc_num):
 
-                with open("data/"+file_name) as f:
+                with open("data/"+PSEUDO_NAME+"/"+file_name) as f:
 
                     # Get the data from file & make other params ready for reply
                     data = f.read()
-                    last_modified = str(os.path.getmtime("data/"+file_name))
-                    content_length = str(os.path.getsize("data/"+file_name))
+                    last_modified = str(os.path.getmtime("data/"+PSEUDO_NAME+"/"+file_name))
+                    content_length = str(os.path.getsize("data/"+PSEUDO_NAME+"/"+file_name))
                     curr_time = str(datetime.now())
                     content_type = "text/text"
 
