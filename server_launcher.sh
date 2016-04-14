@@ -1,1 +1,1 @@
-python bootstrap_server.py
+python3 bootstrap_server.py

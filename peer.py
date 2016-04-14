@@ -80,6 +80,19 @@ def add_file_chunk_info(client_socket):
     return
 
 
+def add_file(client_socket, rfc_num, title):
+
+    protocol_obj = protocols.P2S_Protocol()
+    protocol_obj.add_header("ADD", rfc_num, PROTOCOL)
+    protocol_obj.add_header_line("HOST", MY_HOST_NAME)
+    protocol_obj.add_header_line("PORT", str(CLIENT_PORT))
+    protocol_obj.add_header_line("TITLE", title)
+
+    send_request_print_reply(client_socket, protocol_obj)
+
+    return
+
+
 def recv_timeout(the_socket,timeout=2):
 
     # make socket non blocking
@@ -87,7 +100,6 @@ def recv_timeout(the_socket,timeout=2):
 
     # total data partwise in an array
     total_data=[];
-    data='';
 
     # beginning time
     begin=time.time()
@@ -159,22 +171,34 @@ def handle_get(client_socket, rfc_num, title):
         peer_protocol_obj.add_header_line("HOST", MY_HOST_NAME)
         peer_protocol_obj.add_header_line("OS", MY_OS_NAME)
 
-        client_socket = socket(AF_INET, SOCK_STREAM)
-        client_socket.connect((HOST_NAME, int(port_num)))
+        peer_client_socket = socket(AF_INET, SOCK_STREAM)
+        peer_client_socket.connect((host_name, int(port_num)))
 
         # Forward message to server
-        request = protocol_obj.to_str()
-        client_socket.send(bytes(request, 'UTF-8'))
+        request = peer_protocol_obj.to_str()
+        peer_client_socket.send(bytes(request, 'UTF-8'))
 
         # Reply test
-        reply_str = recv_timeout(client_socket,timeout=2)
+        reply_str = recv_timeout(peer_client_socket,timeout=2)
         print("\n" + reply_str + "\n")
 
         # Write contents to a file
         with open("data/"+PSEUDO_NAME+"/"+rfc_num.lower()+"-"+title+".txt", 'w') as f:
             f.write(reply_str)
 
-        client_socket.close()
+        peer_client_socket.close()
+
+        # Add the file to boot strap server
+        add_to_server = input("Do you wish to add this file info to boot strap ? Y/N >")
+
+        if add_to_server == "Y":
+            add_file(client_socket, rfc_num, title)
+
+        elif add_to_server == "N":
+            logging.info("Skipping the info addition to boot strap server")
+
+        else:
+            logging.warning("Incorrect choice made. Not adding the file info to server")
 
     elif response_code == "404":
         logging.warning("The page that we tried to look up is missing")
@@ -195,7 +219,7 @@ def main():
     logging.info("Peer accepting functions... ")
 
     while True:
-        func_name = input("Insert an operation to be performed ADD /GET/ LOOKUP/ LIST \n")
+        func_name = input("Insert an operation to be performed ADD /GET/ LOOKUP/ LIST > \n")
 
         # Get is handled differently therefore the outer if statement
         if func_name.startswith("GET"):
@@ -247,14 +271,18 @@ def main():
 
 if __name__ == '__main__':
 
-    if len(sys.argv) < 2:
-        logging.warning("Incorrect number of arguments; use python peer.py <pseudo name>")
+    if len(sys.argv) < 4:
+        logging.warning("Incorrect number of arguments; use python peer.py <pseudo name> <my_ip> <server_ip>")
 
     else:
         # Get the host name and update the name with pseudonym
         node_info = os.uname()
+        #MY_HOST_NAME = node_info[1]# + "-" + sys.argv[1]
+
         PSEUDO_NAME = sys.argv[1]
-        MY_HOST_NAME = node_info[1]# + "-" + sys.argv[1]
+        MY_HOST_NAME = sys.argv[2]
+        SERVER_HOST_NAME = sys.argv[3]
+
         MY_OS_NAME = node_info[0] + node_info[2] + node_info[4]
 
         if PSEUDO_NAME == "peer1":
