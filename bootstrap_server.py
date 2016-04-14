@@ -204,6 +204,7 @@ def main():
     # Server socket setup
     server_socket = socket(AF_INET, SOCK_STREAM)
     server_socket.bind(('', SERVER_PORT))
+    server_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     server_socket.listen(10)
 
     while 1:

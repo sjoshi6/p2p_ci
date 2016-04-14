@@ -237,7 +237,7 @@ def main():
                 logging.info("Received GET for document name:: " + rfc_num)
                 handle_get(client_socket, rfc_num, title)
 
-        elif func_name == "EXIT":
+        elif func_name.startswith("EXIT"):
 
             protocol_obj = exit_peer()
             # Forward message to server
@@ -261,7 +261,7 @@ def main():
                 protocol_obj = look_up(rfc_num)
                 send_request_print_reply(client_socket, protocol_obj)
 
-        elif func_name == "LIST":
+        elif func_name.startswith("LIST"):
             protocol_obj = list_all()
             send_request_print_reply(client_socket, protocol_obj)
 

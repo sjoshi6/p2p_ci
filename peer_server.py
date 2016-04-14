@@ -77,7 +77,9 @@ def start_peer_server():
 
     # Server socket setup
     peer_socket = socket(AF_INET, SOCK_STREAM)
+    peer_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     peer_socket.bind(('', CLIENT_PORT))
+
     peer_socket.listen(10)
     while 1:
         connection_socket, addr = peer_socket.accept()
