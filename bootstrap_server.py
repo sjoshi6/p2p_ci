@@ -76,6 +76,7 @@ def add_handler(bs_server, connection_socket, protocol_obj, reply_obj):
     bs_server.rfc_list.append(rfc_index)
 
     reply_obj.add_header("P2P-CI/1.0", "200", "OK")
+    reply_obj.add_header_line(rfc_num, title, host_name, port_num)
     reply = reply_obj.to_str()
     connection_socket.send(bytes(reply, "UTF-8"))
 
@@ -196,10 +197,15 @@ def process_requests(connection_socket, bs_server):
                         print("---------------------")
 
                 # Remove all the docs of this peer
+                new_rfc_list = []
                 for rfc_index in bs_server.rfc_list:
+
                     if rfc_index.hostname == host_name and rfc_index.port_number == port_num:
-                        bs_server.rfc_list.remove(rfc_index)
-                        print("Deleting rfc index from list - " + str(rfc_index.rfc_num) + " : " + str(rfc_index.rfc_title))
+                        pass
+                    else:
+                        new_rfc_list.append(rfc_index)
+
+                bs_server.rfc_list = new_rfc_list
 
                 # Break the loop
                 break
