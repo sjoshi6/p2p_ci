@@ -180,7 +180,28 @@ def process_requests(connection_socket, bs_server):
                 list_handler(bs_server,connection_socket,reply_obj)
 
             elif protocol_obj.header_dictionary["METHOD"] == "EXIT":
-                # Break the while loop and close connection
+
+                host_name = protocol_obj.header_dictionary["HOST"]
+                port_num = protocol_obj.header_dictionary["PORT"]
+
+                # Delete the peer from present list
+                del bs_server.present[host_name]
+
+                # Remove peer from the peer list
+                for peer in bs_server.peer_list:
+                    if peer.hostname == host_name and peer.port_number == port_num:
+                        bs_server.peer_list.remove(peer)
+                        print("Deleted")
+                        print(peer)
+                        print("---------------------")
+
+                # Remove all the docs of this peer
+                for rfc_index in bs_server.rfc_list:
+                    if rfc_index.hostname == host_name and rfc_index.port_number == port_num:
+                        bs_server.rfc_list.remove(rfc_index)
+                        print("Deleting rfc index from list - " + str(rfc_index.rfc_num) + " : " + str(rfc_index.rfc_title))
+
+                # Break the loop
                 break
 
             else:
@@ -203,8 +224,8 @@ def main():
 
     # Server socket setup
     server_socket = socket(AF_INET, SOCK_STREAM)
-    server_socket.bind(('', SERVER_PORT))
     server_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    server_socket.bind(('', SERVER_PORT))
     server_socket.listen(10)
 
     while 1:
