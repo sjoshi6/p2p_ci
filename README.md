@@ -19,7 +19,7 @@ bash$ ./peer_launcher.sh
 Currently, the system is configured for three peers with peer names : peer1/peer2/peer3
 Please follow the command line inputs while running this script.
 
-Note: *** To run a peer with a different pseudo name first create a folder with the same pseudo name inside the 'data' folder. ***
+Note: ***To run a peer with a different pseudo name first create a folder with the same pseudo name inside the 'data' folder.***
 
 
 ### Sample execution snapshot
