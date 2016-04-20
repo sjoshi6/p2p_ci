@@ -1,11 +1,12 @@
 # Peer to Peer System
 
+The application runs only on python3
 ### Boot Strap Server
 
 ###### Run the bootstrap server before running any peers
 
 ```
-python bootstrap_server.py
+python3 bootstrap_server.py
 ```
 
 ### Peers
