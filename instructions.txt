@@ -1,0 +1,35 @@
+Peer to Peer System
+
+Running Instructions
+- Run the boot strap server before running any peers
+- Detailed readme instructions can be found at this link : https://github.com/sjoshi6/p2p_ci.git
+
+-----------------------------
+Running the Boot Strap Server
+-----------------------------
+$bash: python3 bootstrap_server.py
+
+Note: The boot strap server uses python3 to run the code.
+
+#########################################################
+-----------------
+Running the Peers
+-----------------
+$bash: ./peer_launcher.sh
+
+- This script is command line driven
+- Please insert the below inputs when prompted
+
+    1) pseudoname           --> enter peer1/peer2/peer3 only. (To use another name create a folder with the same pseudoname under data directory)
+    2) my Public IP Address --> {Public IP Address of the machine on which peer is running or localhost if server/peer run on the same machine}
+    3) server IP Address    --> {Public IP Address of the machine on which server is running or localhost if server/peer run on the same machine}
+
+#########################################################
+- Once more than one peers are launched and connected
+- You may see a prompt which asks for an input on the peer
+- Enter one of the three values mentioned below:
+    1) GET
+    2) LOOKUP
+    3) LIST
+    --------
+    4) ADD command is run automatically on boot up and on further GET requests
